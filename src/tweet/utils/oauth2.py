@@ -1,7 +1,7 @@
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException, status
 from typing import Annotated
-from src.tweet.utils import tokens
+from tweet.utils import tokens
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 

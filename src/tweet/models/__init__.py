@@ -1,1 +1,1 @@
-from src.tweet.utils.database import Base
+from tweet.utils.database import Base

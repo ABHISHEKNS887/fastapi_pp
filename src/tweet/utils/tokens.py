@@ -2,7 +2,7 @@ import os
 import jwt
 
 from datetime import datetime, timedelta, timezone
-from src.tweet.schemas import tokens as schemas
+from tweet.schemas import tokens as schemas
 from jwt import InvalidTokenError
 from dotenv import load_dotenv
 

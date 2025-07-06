@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from src.tweet.schemas import tokens as token_schemas
-from src.tweet.utils.database import get_db
-from src.tweet.models import user as models
-from src.tweet.utils.hashing import HashPassword
+from tweet.schemas import tokens as token_schemas
+from tweet.utils.database import get_db
+from tweet.models import user as models
+from tweet.utils.hashing import HashPassword
 from sqlalchemy.orm import Session
-from src.tweet.utils import tokens
+from tweet.utils import tokens
 from fastapi.security import OAuth2PasswordRequestForm
 
 router = APIRouter(

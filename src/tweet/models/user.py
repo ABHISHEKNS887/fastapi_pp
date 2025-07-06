@@ -1,5 +1,6 @@
-from src.tweet.utils.database import Base
+from tweet.utils.database import Base
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
 
 class User(Base):
     __tablename__ = "users"
@@ -8,3 +9,4 @@ class User(Base):
     name        = Column(String(50))
     email       = Column(String(100), unique=True)
     password    = Column(String(100))
+    tweets      = relationship("Tweet", back_populates="user", cascade="all, delete-orphan")

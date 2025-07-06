@@ -1,31 +1,36 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc
-from src.tweet.models import tweet as models
-from src.tweet.schemas import tweet as schemas
-from fastapi import HTTPException
+from tweet.models import tweet as models
+from tweet.schemas import tweet as schemas
+from fastapi import HTTPException, status
 
-def create(request: schemas.TweetCreate, db: Session, current_user):
+###############################################################################################################
+def create(request: schemas.TweetCreate, db: Session, current_user, image_url: str | None = None):
     """
     Create a new tweet.
     """
     try:
-        new_tweet = models.Tweet(**request.model_dump(), email=current_user.email)
+        new_tweet = models.Tweet(content=request.content,
+                                 email=current_user.email,
+                                 image_url=image_url)
         db.add(new_tweet)
         db.commit()
         db.refresh(new_tweet)
         return new_tweet
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=400, detail=f"Error creating tweet: {str(e)}")
-    
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Error creating tweet: {str(e)}")
+###############################################################################################################
+
 def get_tweet_by_id(id: int, db: Session):
     """
     Get a tweet by ID.
     """
     tweet = db.query(models.Tweet).filter(models.Tweet.id == id).first()
     if not tweet:
-        raise HTTPException(status_code=404, detail="Tweet not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tweet not found")
     return tweet
+###############################################################################################################
 
 def get_all_tweets(db: Session, skip: int = 0, 
                    limit: int = 100, 
@@ -46,14 +51,18 @@ def get_all_tweets(db: Session, skip: int = 0,
     try:
         sort_column = getattr(models.Tweet, sort_by)
     except AttributeError:
-        raise HTTPException(status_code=400, detail=f"Invalid sort column: {sort_by}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid sort column: {sort_by}")
 
     sort_func = asc if sort_order == "asc" else desc
     query = query.order_by(sort_func(sort_column))
 
+    if not query.count():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No tweets found")
+
     # Pagination
     tweets = query.offset(skip).limit(limit).all()
     return tweets
+###############################################################################################################
 
 def update_tweet(id: int, request: schemas.TweetCreate, db: Session, current_user):
     """
@@ -61,10 +70,10 @@ def update_tweet(id: int, request: schemas.TweetCreate, db: Session, current_use
     """
     tweet = db.query(models.Tweet).filter(models.Tweet.id == id).first()
     if not tweet:
-        raise HTTPException(status_code=404, detail="Tweet not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tweet not found")
 
     if tweet.email != current_user.email:
-        raise HTTPException(status_code=403, detail="Not authorized to update this tweet")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to update this tweet")
 
     try:
         for key, value in request.model_dump().items():
@@ -74,7 +83,8 @@ def update_tweet(id: int, request: schemas.TweetCreate, db: Session, current_use
         return tweet
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=400, detail=f"Error updating tweet: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Error updating tweet: {str(e)}")
+###############################################################################################################
     
 def delete_tweet(id: int, db: Session, current_user):
     """
@@ -82,10 +92,10 @@ def delete_tweet(id: int, db: Session, current_user):
     """
     tweet = db.query(models.Tweet).filter(models.Tweet.id == id).first()
     if not tweet:
-        raise HTTPException(status_code=404, detail="Tweet not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tweet not found")
 
     if tweet.email != current_user.email:
-        raise HTTPException(status_code=403, detail="Not authorized to delete this tweet")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to delete this tweet")
 
     try:
         db.delete(tweet)
@@ -93,4 +103,5 @@ def delete_tweet(id: int, db: Session, current_user):
         return {"detail": "Tweet deleted successfully"}
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=400, detail=f"Error deleting tweet: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Error deleting tweet: {str(e)}")
+###############################################################################################################

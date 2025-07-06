@@ -1,12 +1,11 @@
-from pydantic import BaseModel, Field
+from fastapi import File, UploadFile, Form
+from pydantic import BaseModel
 from datetime import datetime
 
 class TweetCreate(BaseModel):
-    content: str = Field(..., min_length=1, max_length=280, description="This is a sample tweet content.")
-    image_url: str | None = Field(None, description="https://example.com/image.jpg")
+    content: str = Form(...)
+    image: UploadFile = File(None)
 
-    class Config:
-        from_attributes = True
 
 class ShowTweet(BaseModel):
     id: int
@@ -15,3 +14,6 @@ class ShowTweet(BaseModel):
     created_at: datetime
     updated_at: datetime
     image_url: str | None
+
+    class Config:
+        from_attributes = True
