@@ -32,7 +32,7 @@ async def create_tweet(request: Request,  # Renamed to avoid conflict
         image_url = await upload_to_cloudinary(tweet_data.image)
     else:
         image_url = None
-    return tweet.create(tweet_data, db, current_user, image_url)
+    return tweet.create(tweet_data.content, db, current_user, image_url)
 
 ###############################################################################################################
 

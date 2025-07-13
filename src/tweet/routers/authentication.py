@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from tweet.schemas import tokens as token_schemas
+from tweet.schemas import tokens as token_schemas, authentication as auth_schemas
 from tweet.utils.database import get_db
 from tweet.models import user as models
 from tweet.utils.hashing import HashPassword
@@ -12,21 +12,18 @@ router = APIRouter(
 )
 
 @router.post("/login", status_code=status.HTTP_200_OK)
-def login(request: OAuth2PasswordRequestForm = Depends(),
+def login(
+          form_data: OAuth2PasswordRequestForm = Depends(),
           db: Session = Depends(get_db)):
     """
     Authenticate a user and return a token.
     """
-    email = db.query(models.User).filter(models.User.email == request.username).first()
-    if not email:
+    email = db.query(models.User).filter(models.User.email == form_data.username).first()
+    print(email)
+    if not email or not HashPassword.verify(form_data.password, email.password):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-    if not HashPassword.verify(request.password, email.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect password"
+            detail="Incorrect username or password"
         )
     access_token = tokens.create_access_token(
         data={"sub": email.email}

@@ -7,7 +7,6 @@ class User(BaseModel):
     email: str
     password: str
 
-
 class ShowUser(BaseModel):
     id: int
     name: str

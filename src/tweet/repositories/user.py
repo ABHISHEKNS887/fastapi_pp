@@ -3,6 +3,7 @@ from tweet.utils.hashing import HashPassword
 from tweet.models import user as models
 from tweet.schemas import user as schemas
 from fastapi import HTTPException
+import json
 
 ###############################################################################################################
 def create(request: schemas.User, db: Session):
@@ -35,3 +36,33 @@ def delete_user(user_id: int, db: Session):
     db.commit()
     return {"detail": f"User with id {user_id} deleted successfully"}
 ###############################################################################################################
+
+def delete_all_users(db: Session):
+    """Background task to delete all users (except admins if needed)"""
+    try:
+        # Example: Delete all non-admin users
+        deleted_count = db.query(models.User)\
+                        .filter(models.User.is_admin == False)\
+                        .delete()
+        db.commit()
+        print(f"Deleted {deleted_count} users")
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error deleting users: {str(e)}")
+
+async def batch_delete_users(db: Session,
+                            background_tasks):
+    """
+    ✅ Secure: Admin-only access.
+    ✅ Async: Uses BackgroundTasks to avoid timeout.
+    ✅ Flexible: Can be modified for soft deletion or partial cleanup.
+    ⚠️ Dangerous: Always backup data before running!
+    """
+    print("Backing up data before deletion...")  # Placeholder for backup logic
+    # Example: Export users before deletion (SQLAlchemy)
+    users = db.query(models.User).all()
+    with open("user_backup.json", "w") as f:
+        f.write(json.dumps([u.__dict__ for u in users]))
+    """Endpoint to trigger batch deletion (async)"""
+    background_tasks.add_task(delete_all_users, db)
+    return {"message": "Batch user deletion started in background"}

@@ -1,10 +1,11 @@
 from fastapi import File, UploadFile, Form
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from datetime import datetime
+from typing import Union
 
 class TweetCreate(BaseModel):
     content: str = Form(...)
-    image: UploadFile = File(None)
+    image: Union[UploadFile, str, None] = None
 
 
 class ShowTweet(BaseModel):

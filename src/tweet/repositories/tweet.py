@@ -5,12 +5,12 @@ from tweet.schemas import tweet as schemas
 from fastapi import HTTPException, status
 
 ###############################################################################################################
-def create(request: schemas.TweetCreate, db: Session, current_user, image_url: str | None = None):
+def create(content: str, db: Session, current_user, image_url: str | None = None):
     """
     Create a new tweet.
     """
     try:
-        new_tweet = models.Tweet(content=request.content,
+        new_tweet = models.Tweet(content=content,
                                  email=current_user.email,
                                  image_url=image_url)
         db.add(new_tweet)
