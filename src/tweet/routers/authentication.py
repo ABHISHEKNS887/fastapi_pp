@@ -19,7 +19,6 @@ def login(
     Authenticate a user and return a token.
     """
     email = db.query(models.User).filter(models.User.email == form_data.username).first()
-    print(email)
     if not email or not HashPassword.verify(form_data.password, email.password):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

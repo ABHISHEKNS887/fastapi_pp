@@ -64,7 +64,7 @@ def get_all_tweets(db: Session, skip: int = 0,
     return tweets
 ###############################################################################################################
 
-def update_tweet(id: int, request: schemas.TweetCreate, db: Session, current_user):
+def update_tweet(id: int, tweet_data: schemas.TweetCreate, db: Session, current_user, image_url):
     """
     Update a tweet by ID.
     """
@@ -76,8 +76,10 @@ def update_tweet(id: int, request: schemas.TweetCreate, db: Session, current_use
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to update this tweet")
 
     try:
-        for key, value in request.model_dump().items():
-            setattr(tweet, key, value)
+        if tweet_data.content is not None:
+            tweet.content = tweet_data.content
+        if image_url is not None:
+            tweet.image_url = image_url
         db.commit()
         db.refresh(tweet)
         return tweet

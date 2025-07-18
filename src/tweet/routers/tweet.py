@@ -60,11 +60,16 @@ async def get_all_tweets(db: Session = Depends(get_db),
 
 @router.put("/{id}", response_model=schemas.ShowTweet, status_code=status.HTTP_200_OK)
 async def update_tweet(id: int,
-                       request: schemas.TweetCreate = Depends(),
+                       tweet_data: schemas.TweetCreate = Depends(),
                        db: Session = Depends(get_db),
                        current_user: schemas_user.User = Depends(oauth2.get_current_user)):
     """Update a tweet by ID."""
-    return tweet.update_tweet(id, request, db, current_user)
+    if tweet_data.image:
+        # Upload image to Cloudinary and get the URL
+        image_url = await upload_to_cloudinary(tweet_data.image)
+    else:
+        image_url = None
+    return tweet.update_tweet(id, tweet_data, db, current_user, image_url)
 
 ###############################################################################################################
 
